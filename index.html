@@ -89,12 +89,32 @@
     </div>
   </section>
 
-  <!-- SPINDLE (stub) -->
+  <!-- SPINDLE / VFD -->
   <section id="view-spindle" class="view" data-parent="view-home">
     <div class="row">
       <h2>Spindle / VFD</h2>
-      <p>Spindle speed controller setup will move here from the Configuration app.</p>
-      <p class="docs">Coming soon: VFD model selection, run/stop wiring guide, and connection status.</p>
+      <p class="intro">
+        Detects the USB-to-RS485 adapter, identifies the connected VFD by probing
+        known register layouts, and installs the matching profile so spindle RPM
+        control is live. Run this after plugging in a new spindle controller.
+      </p>
+
+      <div class="spindle-panel">
+        <div class="spindle-field">
+          <label>RS485 Adapter</label>
+          <input type="text" id="spindle-setup-adapter" class="machine-input" readonly />
+        </div>
+        <div class="spindle-field">
+          <label>Installed VFD Profile</label>
+          <input type="text" id="spindle-setup-profile" class="machine-input" readonly />
+        </div>
+
+        <div class="action-row">
+          <button type="button" id="spindle-setup-configure" class="button primary">Detect &amp; Configure Spindle</button>
+          <button type="button" id="spindle-setup-refresh" class="button secondary">Refresh status</button>
+        </div>
+        <p id="spindle-status" class="status"></p>
+      </div>
     </div>
   </section>
 

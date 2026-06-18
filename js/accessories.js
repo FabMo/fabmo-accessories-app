@@ -76,6 +76,7 @@ function showView(id) {
   var isHome = id === "view-home";
   $("#nav-back").toggle(!isHome);
   $("#nav-home").toggleClass("active", isHome);
+  if (id === "view-spindle") refreshSpindleDiscover();
 }
 
 function goBack() {
@@ -108,6 +109,9 @@ $(function () {
 
   $("#btn-docs").on("click", openDocumentation);
   $("#btn-setup").on("click", runSetup);
+
+  $("#spindle-setup-configure").on("click", runSpindleConfigure);
+  $("#spindle-setup-refresh").on("click", refreshSpindleDiscover);
 });
 
 // --- Rotary size picker ---------------------------------------------------
@@ -248,4 +252,78 @@ function setStatus(text, cls) {
 function errText(err) {
   if (!err) return "unknown error";
   return err.message || (typeof err === "string" ? err : JSON.stringify(err));
+}
+
+// ===========================================================================
+// Spindle / VFD setup (auto-detect + status)
+// Moved here from the Configuration app. Talks to the same engine REST routes:
+//   GET  /acc/spindle/discover   -> { status, data:{ adapter, installedTemplate } }
+//   POST /acc/spindle/configure  -> { status, data:{ ok, steps, template } }
+// ===========================================================================
+function renderSpindleDiscover(data) {
+  data = data || {};
+  if (data.adapter) {
+    $("#spindle-setup-adapter").val(
+      data.adapter.name + "  [" + data.adapter.vid + ":" + data.adapter.pid + "]  " +
+      (data.adapter.ttyPath || "(not bound)"));
+  } else {
+    $("#spindle-setup-adapter").val("Not detected");
+  }
+  $("#spindle-setup-profile").val(data.installedTemplate || "(none)");
+}
+
+function refreshSpindleDiscover() {
+  $.ajax({ url: "/acc/spindle/discover", method: "GET", dataType: "json" })
+    .done(function (resp) {
+      if (resp.status === "success") {
+        renderSpindleDiscover(resp.data);
+      } else {
+        setSpindleStatus("Detection failed: " + (resp.message || "unknown"), "err");
+      }
+    })
+    .fail(function (xhr) {
+      setSpindleStatus("Detection request failed: " + xhr.status, "err");
+    });
+}
+
+function runSpindleConfigure() {
+  $("#spindle-setup-configure").prop("disabled", true);
+  setSpindleStatus("Detecting & configuring…");
+  $.ajax({ url: "/acc/spindle/configure", method: "POST", dataType: "json" })
+    .done(function (resp) {
+      var d = resp.data || {};
+      if (d.ok) {
+        setSpindleStatus("Spindle configured: " + d.template, "ok");
+        fabmo.notify("success", "Spindle configured: " + d.template);
+      } else {
+        var reason = spindleFailureReason(d.steps);
+        setSpindleStatus("Configuration failed: " + reason, "err");
+        fabmo.notify("error", "Spindle configuration failed: " + reason);
+      }
+      refreshSpindleDiscover();
+    })
+    .fail(function () {
+      setSpindleStatus("Configure request failed", "err");
+      fabmo.notify("error", "Spindle configure request failed");
+    })
+    .always(function () {
+      $("#spindle-setup-configure").prop("disabled", false);
+    });
+}
+
+function spindleFailureReason(steps) {
+  var failed = (steps || []).filter(function (s) { return !s.ok; }).pop();
+  if (!failed) return "unknown error";
+  switch (failed.name) {
+    case "detect_adapter":   return "no RS485 adapter detected";
+    case "bind_driver":      return "RS485 adapter found but kernel driver did not bind";
+    case "probe_vfd":        return "RS485 adapter found, no matching profile for VFD";
+    case "install_template": return "profile install failed (" + (failed.detail || "unknown") + ")";
+    case "connect_vfd":      return "VFD connect failed (" + (failed.detail || "unknown") + ")";
+    default:                 return failed.name + (failed.detail ? " (" + failed.detail + ")" : "");
+  }
+}
+
+function setSpindleStatus(text, cls) {
+  $("#spindle-status").text(text).removeClass("ok err").addClass(cls || "");
 }

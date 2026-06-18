@@ -131,4 +131,20 @@ body { background: #f5f5f5; }
   color: #8a6d1a;
 }
 
+/* Spindle / VFD setup */
+.spindle-panel {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin: 1rem;
+}
+.spindle-field { margin-bottom: 0.85rem; }
+.spindle-field label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+.spindle-field input {
+  width: 100%;
+  margin: 0;
+  background: #f7f7f7;
+}
+
 #app-header { color: #fff; }
