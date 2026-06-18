@@ -26,7 +26,7 @@
   </div>
 
   <!-- HOME / TILE GRID -->
-  <section id="view-home" class="view active">
+  <section id="view-home" class="view active" data-parent="">
     <div class="row">
       <p class="intro">Pick an accessory to set up or learn about.</p>
       <div class="tile-grid">
@@ -46,31 +46,51 @@
     </div>
   </section>
 
-  <!-- ROTARY -->
-  <section id="view-rotary" class="view">
+  <!-- ROTARY: pick your size -->
+  <section id="view-rotary" class="view" data-parent="view-home">
     <div class="row">
       <h2>Rotary Indexer</h2>
-      <p>Pick the model you own. We'll apply the matching axis assignment and unit values automatically.</p>
-
+      <p class="intro">Pick the indexer that matches yours.</p>
       <div id="rotary-model-grid" class="model-grid">
-        <!-- Filled by JS from rotary models preset -->
+        <!-- Filled by JS from INDEXERS -->
       </div>
+    </div>
+  </section>
 
-      <div id="rotary-selected" class="selected-panel" style="display:none">
-        <div class="selected-info">
-          <strong>Selected:</strong> <span id="rotary-selected-name"></span>
+  <!-- ROTARY: detail / actions for the chosen size -->
+  <section id="view-rotary-detail" class="view" data-parent="view-rotary">
+    <div class="row">
+      <div class="detail-head">
+        <div class="detail-img" id="detail-img"></div>
+        <div class="detail-title">
+          <h2 id="detail-name">Indexer</h2>
+          <p id="detail-blurb" class="docs"></p>
         </div>
-        <button id="rotary-apply" class="button primary">Apply Setup</button>
-        <span id="rotary-status" class="status"></span>
       </div>
 
-      <h3>How to use</h3>
-      <p class="docs">Once applied, mount the indexer on your machine and home as usual. Detailed usage docs will live here.</p>
+      <div class="action-row">
+        <button id="btn-docs" class="button secondary">View documentation</button>
+        <button id="btn-setup" class="button primary">Run Setup</button>
+      </div>
+      <p id="detail-status" class="status"></p>
+
+      <div class="setup-summary">
+        <h3>What &ldquo;Run Setup&rdquo; does</h3>
+        <ul>
+          <li>Assigns the rotary to its axis and sets the rotary unit values (steps&nbsp;per&nbsp;degree).</li>
+          <li>Sets safe feedrates / speeds for the rotary axis.</li>
+          <li>Installs (or updates) the rotary helper macros.</li>
+        </ul>
+        <p class="docs note" id="detail-unconfigured" style="display:none">
+          Setup values for this indexer aren&rsquo;t loaded yet &mdash; this is a scaffold.
+          &ldquo;Run Setup&rdquo; is disabled until real config + macros are filled in.
+        </p>
+      </div>
     </div>
   </section>
 
   <!-- SPINDLE (stub) -->
-  <section id="view-spindle" class="view">
+  <section id="view-spindle" class="view" data-parent="view-home">
     <div class="row">
       <h2>Spindle / VFD</h2>
       <p>Spindle speed controller setup will move here from the Configuration app.</p>
@@ -79,7 +99,7 @@
   </section>
 
   <!-- PENDANT (stub) -->
-  <section id="view-pendant" class="view">
+  <section id="view-pendant" class="view" data-parent="view-home">
     <div class="row">
       <h2>Pendant / Gamepad</h2>
       <p>Gamepad and pendant device setup will move here.</p>

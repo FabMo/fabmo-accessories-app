@@ -23,6 +23,8 @@ zip -r "$OUT" \
     index.html \
     css \
     js \
+    docs \
+    $( [ -d images ] && echo images ) \
     $( [ -f icon.png ] && echo icon.png ) \
     -x "*.DS_Store" \
     -x "node_modules/*" \

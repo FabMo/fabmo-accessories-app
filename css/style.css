@@ -81,4 +81,54 @@ body { background: #f5f5f5; }
 
 .docs { color: #555; padding: 0 1rem; }
 
+/* Rotary detail screen */
+.detail-head {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0 1rem;
+  margin-bottom: 1rem;
+}
+.detail-img {
+  flex: 0 0 140px;
+  height: 110px;
+  background: #f0f0f0 center/contain no-repeat;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+.detail-title { flex: 1; }
+.detail-title h2 { margin-bottom: 0.25rem; }
+
+.action-row {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0 1rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+.action-row .button { margin: 0; }
+.button.disabled, .button[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.setup-summary {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin: 1rem;
+}
+.setup-summary h3 { margin-top: 0; }
+.setup-summary ul { margin: 0 0 0 1.1rem; color: #555; }
+.setup-summary li { margin-bottom: 0.35rem; }
+.note {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  background: #fff7e6;
+  border: 1px solid #f0d68a;
+  border-radius: 4px;
+  color: #8a6d1a;
+}
+
 #app-header { color: #fff; }
