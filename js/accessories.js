@@ -3,65 +3,97 @@ var fabmo = new FabMoDashboard();
 // ===========================================================================
 // Rotary indexer catalog
 // ===========================================================================
-// One entry per indexer size. Everything marked PLACEHOLDER must be filled in
-// with real values before "Run Setup" will do anything on a machine.
+// All three sizes use the SAME rotary axis/driver and differ only in unit
+// values (steps-per-degree, set by the gear ratio) and feedrates. So a size's
+// full config = ROTARY_BASE (shared) deep-merged with that size's `override`.
 //
-//  config  - object passed straight to fabmo.setConfig(). Shape mirrors the
-//            engine config tree, e.g.:
-//              { driver: { "4ma": 3, "4sa": 1.8, "4tr": 360, "4mi": 10, "4po": 0 },
-//                machine: { ... } }
-//            (driver = G2 firmware; motor 4 = the rotary. aam/afr/avm = A axis.)
-//            Leave null until the real axis assignment / feedrates / unit
-//            values for this size are known.
+// Config shape mirrors the engine config tree; all G2 firmware keys live under
+// the `driver` branch (motor 4 = the rotary motor, A = its coordinate axis):
+//   { driver: { "4ma": 3, "4sa": 1.8, "4mi": 10, "4po": 0,  // shared motor map
+//               "4tr": <deg of A per motor rev>,             // per-size unit value
+//               "aam": 1, "afr": <max feed>, "avm": <max vel> } }
 //
-//  macros  - array of macros to install-or-update. Each:
-//              { index: <number>, name: <str>, description: <str>,
-//                content: <OpenSBP source>, type: "sbp" }
-//            Leave [] until the real macro bodies + numbers are decided.
-//
-//  docUrl    - canonical web docs URL (used when online). null = none yet.
-//  localDoc  - bundled offline fallback page, relative to the app root.
+// Run Setup stays DISABLED until ROTARY_READY is flipped true (below), so a
+// scaffold can never push placeholder values to a live tool.
 // ===========================================================================
+
+// Flip to true once ROTARY_BASE + every size's `override` hold real values.
+var ROTARY_READY = false;
+
+// Shared across all indexer sizes: axis assignment + motor basics (+ any feed
+// limits common to all sizes). PLACEHOLDER — fill with the real shared setup.
+var ROTARY_BASE = {
+  // driver: { "4ma": 3, "4sa": 1.8, "4mi": 10, "4po": 0, "aam": 1 },
+};
+
+// Macros installed/updated by Run Setup (shared across sizes). PLACEHOLDER.
+// Each: { index: <number>, name: <str>, description: <str>,
+//         content: <OpenSBP source>, type: "sbp" }
+var ROTARY_MACROS = [];
+
 var INDEXERS = [
   {
-    id: "rotary-3",
-    size: '3"',
-    name: '3" Rotary Indexer',
+    id: "rotary-3", size: '3"', name: '3" Rotary Indexer',
     blurb: "Compact 3-inch rotary indexer.",
     image: "images/rotary/3in.png",   // PLACEHOLDER image (pictures incoming)
     docUrl: null,                      // PLACEHOLDER website docs URL
     localDoc: "docs/rotary-indexer.html",
-    config: null,                      // PLACEHOLDER real config values
-    macros: [],                        // PLACEHOLDER real macros
+    // Per-size unit values + feedrates, merged over ROTARY_BASE. PLACEHOLDER.
+    override: {
+      // driver: { "4tr": <deg of A per motor rev for 3" gear ratio>,
+      //           "afr": <max feed>, "avm": <max vel> },
+    },
   },
   {
-    id: "rotary-6",
-    size: '6"',
-    name: '6" Rotary Indexer',
+    id: "rotary-6", size: '6"', name: '6" Rotary Indexer',
     blurb: "Mid-size 6-inch rotary indexer.",
     image: "images/rotary/6in.png",
     docUrl: null,
     localDoc: "docs/rotary-indexer.html",
-    config: null,
-    macros: [],
+    override: {
+      // driver: { "4tr": <deg/rev for 6">, "afr": <feed>, "avm": <vel> },
+    },
   },
   {
-    id: "rotary-12",
-    size: '12"',
-    name: '12" Rotary Indexer',
+    id: "rotary-12", size: '12"', name: '12" Rotary Indexer',
     blurb: "Large 12-inch rotary indexer.",
     image: "images/rotary/12in.png",
     docUrl: null,
     localDoc: "docs/rotary-indexer.html",
-    config: null,
-    macros: [],
+    override: {
+      // driver: { "4tr": <deg/rev for 12">, "afr": <feed>, "avm": <vel> },
+    },
   },
 ];
 
-// A model is "ready" once it has real config to apply. Until then Run Setup is
-// inert so a scaffold can never push placeholder values to a live tool.
+// Deep-merge plain objects (override wins); returns a new object.
+function deepMerge(base, over) {
+  var out = {};
+  [base, over].forEach(function (src) {
+    if (!src) return;
+    Object.keys(src).forEach(function (k) {
+      var v = src[k];
+      if (v && typeof v === "object" && !Array.isArray(v)) {
+        out[k] = deepMerge(out[k] || {}, v);
+      } else {
+        out[k] = v;
+      }
+    });
+  });
+  return out;
+}
+
+function hasKeys(o) { return !!o && Object.keys(o).length > 0; }
+
+// Full config to apply for a size = shared base merged with the size override.
+function buildRotaryConfig(model) {
+  return deepMerge(ROTARY_BASE, model && model.override);
+}
+
+// "Ready" only when real values are loaded (ROTARY_READY) and there is actually
+// something to apply for this size. Until then Run Setup stays inert.
 function isConfigured(model) {
-  return !!(model && model.config && Object.keys(model.config).length > 0);
+  return ROTARY_READY && hasKeys(ROTARY_BASE) && hasKeys(model && model.override);
 }
 
 // ===========================================================================
@@ -180,12 +212,12 @@ function runSetup() {
   if (!window.confirm(msg)) return;
 
   setStatus("Applying configuration…");
-  fabmo.setConfig(model.config, function (err) {
+  fabmo.setConfig(buildRotaryConfig(model), function (err) {
     if (err) {
       setStatus("Config error: " + errText(err), "err");
       return;
     }
-    installMacros(model.macros, function (mErr, results) {
+    installMacros(ROTARY_MACROS, function (mErr, results) {
       if (mErr) {
         setStatus("Config applied, but macro install failed: " + errText(mErr), "err");
         return;
