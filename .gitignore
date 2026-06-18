@@ -1,0 +1,5 @@
+node_modules/
+dist/
+*.fma
+.DS_Store
+*.log

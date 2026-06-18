@@ -1,0 +1,12 @@
+{
+	"name": "Accessories",
+	"id": "accessories",
+	"version": "0.0.1",
+	"description": "Setup and usage for accessories: rotary indexers, spindles, pendants, and more",
+	"main": "./index.html",
+	"icon": "icon.png",
+	"icon_color": "#2c7a7b",
+	"author": "FabMo",
+	"website": "http://shopbottools.com",
+	"license": "MIT"
+}
